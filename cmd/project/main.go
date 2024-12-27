@@ -32,15 +32,15 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 
 	result, err := calculator.Calc(req.Expression)
 	if err != nil {
-		var status int
-		if err.Error() == "Not a number" {
-			status = http.StatusUnprocessableEntity
-			json.NewEncoder(w).Encode(CalculateResponse{Error: "Expression is not valid"})
+		w.Header().Set("Content-Type", "application/json")
+		s := err.Error()
+		if s == "Only numbers and arithmetic operations are allowed" || s == "Division by zero" || s == "Not right parentheses" || s == "Not enough values" {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			json.NewEncoder(w).Encode(CalculateResponse{Error: "Expression is not valid. " + s + "."})
 		} else {
-			status = http.StatusInternalServerError
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(CalculateResponse{Error: "Internal server error"})
 		}
-		w.WriteHeader(status)
 		return
 	}
 

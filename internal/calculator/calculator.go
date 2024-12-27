@@ -16,10 +16,10 @@ func Calc(expression string) (float64, error) {
         var num float64
         var j int
         if !IsNum(expression) {
-                return 0, fmt.Errorf("Not a number")
+                return 0, fmt.Errorf("Only numbers and arithmetic operations are allowed")
         }
         i := strings.IndexAny(expression, "+-*/")
-        if i < 0 {
+        if i < 0 || i == 0 && expression[0] == '-' {
                 n, err := strconv.ParseFloat(expression, 64)
                 return n, err
         }
@@ -41,7 +41,10 @@ func Calc(expression string) (float64, error) {
                                 return 0, fmt.Errorf("Not right parentheses")
                         }
                 }
-                n, err := Calc(expression[j + 1:i])
+		if cnt != 0 {
+			return 0, fmt.Errorf("Not right parentheses")
+		}
+		n, err := Calc(expression[j + 1:i])
                 if err != nil {
                         return 0, err
                 }
@@ -53,25 +56,37 @@ func Calc(expression string) (float64, error) {
         j = strings.IndexAny(expression, "*/")
         for j != -1 {
                 prev := strings.LastIndexAny(expression[:j], "+-*/") + 1
-                next := strings.IndexAny(expression[j + 1:], "+-/*") 
-                if next == -1 {
+		var next int
+		if expression[j + 1] == '-' {
+			next = strings.IndexAny(expression[j+2:], "+-/*")
+		} else {
+			next = strings.IndexAny(expression[j + 1:], "+-/*") 
+		}
+		if next == -1 {
                         next = len(expression)
-                } else {
+                } else if next == 0 {
+			return 0, fmt.Errorf("Not enough values")
+		}else {
                         next += len(expression[:j + 1])
                 }
                 var num1, num2 float64
                 var err error
                 num1, err = strconv.ParseFloat(expression[prev:j], 64)
                 if err != nil {
+			fmt.Println(expression)
                         return 0, err
                 }
                 num2, err = strconv.ParseFloat(expression[j + 1:next], 64)
                 if err != nil {
+			fmt.Println(expression)
                         return 0, err
                 }
                 if expression[j] == '*' {
                        num = num1 * num2
                 } else {
+			if num2 == 0 {
+				return 0, fmt.Errorf("Division by zero")
+			}
                         num = num1 / num2
                 }
                 n := strconv.FormatFloat(num, 'f', -1, 64)
@@ -85,10 +100,17 @@ func Calc(expression string) (float64, error) {
                 if expression[0] == '-' {
                         prev = 0
                 }
-                next := strings.IndexAny(expression[j + 1:], "+-/*") 
-                if next == -1 {
+		var next int
+		if expression[j + 1] == '-' {
+			next = strings.IndexAny(expression[j + 2:], "+-/*") 
+		} else {
+			next = strings.IndexAny(expression[j + 1:], "+-/*") 
+		}
+		if next == -1 {
                         next = len(expression)
-                } else {
+                } else if next == 0 {
+			return 0, fmt.Errorf("Not enough values")
+		} else {
                         next += len(expression[:j + 1])
                 }
                 var num1, num2 float64
