@@ -19,7 +19,7 @@ func Calc(expression string) (float64, error) {
                 return 0, fmt.Errorf("Only numbers and arithmetic operations are allowed")
         }
         i := strings.IndexAny(expression, "+-*/")
-        if i < 0 || i == 0 && expression[0] == '-' {
+	if i < 0  || i == 0 && expression[0] == '-' && !strings.ContainsAny(expression[1:], "+-/*"){
                 n, err := strconv.ParseFloat(expression, 64)
                 return n, err
         }
